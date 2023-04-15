@@ -8,7 +8,7 @@ from playsound import playsound
 playsound('Bismillah.wav')
 prayersList = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 font =  ("Arial", 11)
-menu = ['', ["settings",'Exit']]
+menu = ['', ['Exit']]
 tooltip = 'Tooltip'
 coords = [29.7667,31.3]
 def main():
