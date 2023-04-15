@@ -2,14 +2,19 @@ import PySimpleGUI as psg
 from threading import Timer
 from praytimes import PrayTimes
 from datetime import datetime,timedelta
+from psgtray import SystemTray
+from playsound import playsound
 
+playsound('Bismillah.wav')
 coords = [29.7667,31.3]
 prayersList = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
-
+font =  ("Arial", 11)
+menu = ['', ['Exit']]
+tooltip = 'Tooltip'
 def main():
     now = datetime.now()
     pTimes = getPrayerTimes()
-    print(pTimes)
+    # print(pTimes)
     fajr = formatPrayerDate(pTimes["fajr"])
     dhuhr = formatPrayerDate(pTimes["dhuhr"])
     asr = formatPrayerDate(pTimes["asr"])
@@ -31,11 +36,12 @@ def main():
                                       justification="r", expand_x=True,)],
         [psg.Text(time, key="Time", justification="c",
                   enable_events=True, expand_x=True)],
-        [psg.Text("",key="timeLeft",expand_x=True,justification="c"),psg.Text("",key="nextPrayer",expand_x=True,justification="c")],
+        [psg.Text("next prayer is"),psg.Text("",key="nextPrayer",text_color="red",font=font),psg.Text("",key="timeLeft",)],
 
     ]
 
-    window = psg.Window("Prayer Times", layout, size=(200, 220))
+    window = psg.Window("Prayer Times", layout, size=(250, 240),grab_anywhere=True,icon='img/prayertimes.ico',no_titlebar=True,element_padding=4)
+    tray = SystemTray(menu, single_click_events=False, window=window, tooltip=tooltip, icon='img/prayertimes.ico')
 
     def calcPrayerTimes():
         now = datetime.now()
@@ -58,13 +64,29 @@ def main():
             "red" if nextprayer == "isha" else "white"))
         window["Time"].Update(str((now.strftime("%d-%m-%Y, %I:%M:%S %p"))))
         leftTilNextPrayer = calcNextPrayer(pTimes[prayersList[nextPrayer()]])
-        window["timeLeft"].Update(leftTilNextPrayer)
-        window["nextPrayer"].Update(f" til {nextprayer}")
+        window["nextPrayer"].Update(f"{nextprayer}")
+        window["timeLeft"].Update(f"after {leftTilNextPrayer}")
+        tooltip = f"next prayer is {nextprayer} after {leftTilNextPrayer}"
+        tray.set_tooltip(tooltip)
         Timer(1.0, calcPrayerTimes).start()
     Timer(1.0, calcPrayerTimes).start()
 
+
+    
     while True:
         event, values = window.read()
+
+        # IMPORTANT step. It's not required, but convenient. Set event to value from tray
+        # if it's a tray event, change the event variable to be whatever the tray sent
+        if event == tray.key:
+            event = values[event]       # use the System Tray's event as if was from the window
+            if event == "Hide":
+                window.minimize()
+            if event == "Show":
+                window.maximize()
+            if event == "Exit":
+                window.close()
+                
         if event in (psg.WIN_CLOSED, "Exit"):
             break
 
