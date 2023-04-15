@@ -5,15 +5,12 @@ from datetime import datetime,timedelta
 from psgtray import SystemTray
 from playsound import playsound
 
-# playsound('Bismillah.wav')
+playsound('Bismillah.wav')
 prayersList = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 font =  ("Arial", 11)
 menu = ['', ["settings",'Exit']]
 tooltip = 'Tooltip'
 coords = [29.7667,31.3]
-# settings = psg.UserSettings()
-# settings["lat"]=29.7667
-# settings["lon"]=31.3
 def main():
     now = datetime.now()
     pTimes = getPrayerTimes()
