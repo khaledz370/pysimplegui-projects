@@ -2,3 +2,4 @@
 exe/prayerTimes 1.0 inno.iss
 exe/prayerTimes 1.0.exe
 add startup to inno.txt
+test.pyw

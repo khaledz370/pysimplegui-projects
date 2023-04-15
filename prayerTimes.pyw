@@ -5,12 +5,15 @@ from datetime import datetime,timedelta
 from psgtray import SystemTray
 from playsound import playsound
 
-playsound('Bismillah.wav')
-coords = [29.7667,31.3]
+# playsound('Bismillah.wav')
 prayersList = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 font =  ("Arial", 11)
-menu = ['', ['Exit']]
+menu = ['', ["settings",'Exit']]
 tooltip = 'Tooltip'
+coords = [29.7667,31.3]
+# settings = psg.UserSettings()
+# settings["lat"]=29.7667
+# settings["lon"]=31.3
 def main():
     now = datetime.now()
     pTimes = getPrayerTimes()
@@ -40,8 +43,10 @@ def main():
 
     ]
 
-    window = psg.Window("Prayer Times", layout, size=(250, 240),grab_anywhere=True,icon='img/prayertimes.ico',no_titlebar=True,element_padding=4)
+    window = psg.Window("Prayer Times", layout, size=(0, 0),keep_on_top=True,grab_anywhere=True,icon='img/prayertimes.ico',alpha_channel=0.5,no_titlebar=True,element_padding=4)
     tray = SystemTray(menu, single_click_events=False, window=window, tooltip=tooltip, icon='img/prayertimes.ico')
+    screen_width, screen_height = window.get_screen_dimensions()
+    print(screen_height,screen_width)
 
     def calcPrayerTimes():
         now = datetime.now()
@@ -66,7 +71,13 @@ def main():
         leftTilNextPrayer = calcNextPrayer(pTimes[prayersList[nextPrayer()]])
         window["nextPrayer"].Update(f"{nextprayer}")
         window["timeLeft"].Update(f"after {leftTilNextPrayer}")
-        tooltip = f"next prayer is {nextprayer} after {leftTilNextPrayer}"
+        l1 = f"fajr:  {fajr}"
+        l2 = f"duhr:  {dhuhr}"
+        l3 = f"asr:  {asr}"
+        l4 = f"maghrib  {maghrib}"
+        l5 = f"isha:  {isha}"
+        l6= f"{nextprayer} is after {leftTilNextPrayer}"
+        tooltip = f"{l1}\n{l2}\n{l3}\n{l4}\n{l5}\n\n{l6}"
         tray.set_tooltip(tooltip)
         Timer(1.0, calcPrayerTimes).start()
     Timer(1.0, calcPrayerTimes).start()
