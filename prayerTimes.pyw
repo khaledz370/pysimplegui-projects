@@ -219,7 +219,7 @@ def open_settings():
          psg.Button("Exit", enable_events=True, expand_x=True)]
     ]
     settingsWindow = psg.Window(
-        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico")
+        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico",grab_anywhere=True)
     while True:
         event, values = settingsWindow.read()
         # print(event)
