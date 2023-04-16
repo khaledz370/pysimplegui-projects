@@ -92,14 +92,15 @@ def main():
         asr = formatPrayerDate(pTimes["asr"])
         maghrib = formatPrayerDate(pTimes["maghrib"])
         isha = formatPrayerDate(pTimes["isha"])
-        nextprayer = prayersList[nextPrayer()]
+        nexPrayerIndex = nextPrayer()
+        nextprayer = prayersList[nexPrayerIndex]
         window["fajr"].Update(fajr, text_color=("red" if nextprayer == "fajr" else "white"))
         window["dhuhr"].Update(dhuhr, text_color=("red" if nextprayer == "dhuhr" else "white"))
         window["asr"].Update(asr, text_color=("red" if nextprayer == "asr" else "white"))
         window["maghrib"].Update(maghrib, text_color=("red" if nextprayer == "maghrib" else "white"))
         window["isha"].Update(isha, text_color=("red" if nextprayer == "isha" else "white"))
         window["Time"].Update(str((now.strftime("%d-%m-%Y, %I:%M:%S %p"))))
-        leftTilNextPrayer = (calcNextPrayer(pTimes[prayersList[nextPrayer()]]))
+        leftTilNextPrayer = (calcNextPrayer(pTimes[prayersList[nexPrayerIndex]],nexPrayerIndex))
         window["nextPrayer"].Update(f"{nextprayer}")
         window["timeLeft"].Update(f"after {leftTilNextPrayer}")
         l1 = f"fajr:  {fajr}"
@@ -181,7 +182,7 @@ def getPrayerTimes():
     return pT.getTimes([year, month, day], [float(settings["lat"]), float(settings["long"])], settings["timeZone"])
 
 
-def calcNextPrayer(prayer):
+def calcNextPrayer(prayer,index):
     # print(prayer)
     d1 = datetime.now()
     d1h = d1.strftime("%H")
@@ -193,8 +194,12 @@ def calcNextPrayer(prayer):
     d2m = int(prayerTxt[1])
     d2s = 0
     totalSec2 = int(d2h)*60*60+int(d2m)*60+int(d2s)
-    difSec = secondsInDay-abs(totalSec1-totalSec2)
+    if index:
+        difSec = abs(totalSec1-totalSec2)
+    else:
+        difSec = secondsInDay-abs(totalSec1-totalSec2)
     timeLeft = str(timedelta(seconds=(difSec)))
+    print(timeLeft)
     return timeLeft
 
 
