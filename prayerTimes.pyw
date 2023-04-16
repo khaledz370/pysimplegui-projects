@@ -11,7 +11,7 @@ import os
 
 me = singleton.SingleInstance()
 
-defaultSettings = {'lat': '0', 'long': '0', 'timeZone': 0, 'method': 'MWL', 'fajr': '19.0', 'dhuhr': '1',
+defaultSettings = {'lat': '0', 'long': '0', 'timeZone': 0, 'method': 'MWL', 'fajr': '19.5', 'dhuhr': '0',
                    'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'showWindow': 0, 'windowLocationX': 82, 'windowLocationY': 18}
 appdataFolder = f"{os.getenv('APPDATA')}\prayerTimes"
 appdataFile = f"{appdataFolder}\config.json"
@@ -207,10 +207,10 @@ def calcNextPrayer(prayer):
 def open_settings():
     settingLayout = [
         [psg.Text("Settings", justification="c", expand_x=True)],
-        [psg.Text("lat:", s=(5, 1)), psg.Input(str(settings["lat"]), k="s_lat", s=(9, 1)),
+        [psg.Text("lat:", s=(10, 1)), psg.Input(str(settings["lat"]), k="s_lat", s=(20, 1)),
          psg.Text("long:"), psg.Input(
-             str(settings["long"]), k="s_long", s=(9, 1)), psg.Text("timezone:"),
-         psg.Combo(timezones, k="s_timeZone", s=(9, 1), expand_x=True, default_value=settings["timeZone"])],
+             str(settings["long"]), k="s_long", s=(20, 1)), psg.Text("timezone:"),
+         psg.Combo(timezones, k="s_timeZone", s=(5, 1), expand_x=True, default_value=settings["timeZone"])],
         [psg.Text("method:", s=(10, 1)),
          psg.Combo(methods, s=(10, 1), expand_x=True, k="s_method", default_value=settings["method"])],
         [psg.Text("fajr :", s=(10, 1)),
@@ -224,17 +224,15 @@ def open_settings():
         [psg.Text("isha:", s=(10, 1)),
          psg.Input(str(settings["isha"]), justification="r", expand_x=True, s=(10, 1), k="s_isha"), psg.Text("degrees", s=(6, 1))],
         [psg.Checkbox("show main window:", default=settings["showWindow"],
-                      k="s_showWindow", enable_events=True)],
-        [psg.Text("window location X"), psg.Input(
-            settings["windowLocationX"], k="s_windowLocationX"), psg.Text("%")],
-        [psg.Text("window location Y"), psg.Input(
-            settings["windowLocationY"], k="s_windowLocationY"), psg.Text("%")],
+                      k="s_showWindow", enable_events=True),psg.Text("window location X"), psg.Input(
+            settings["windowLocationX"], k="s_windowLocationX",s=(5,0)), psg.Text("%"),psg.Text("window location Y"), psg.Input(
+            settings["windowLocationY"], k="s_windowLocationY",s=(5,0)), psg.Text("%")],
         [psg.Button("Default", enable_events=True, key="default", expand_x=True),
          psg.Button("Save", enable_events=True, expand_x=True),
          psg.Button("Exit", enable_events=True, expand_x=True)]
     ]
     settingsWindow = psg.Window(
-        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico",grab_anywhere=True)
+        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico",grab_anywhere=True,element_justification="c")
     while True:
         event, values = settingsWindow.read()
         # print(event)
