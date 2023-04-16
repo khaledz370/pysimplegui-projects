@@ -9,23 +9,22 @@ import pyautogui
 from tendo import singleton
 import os
 
+# allow only one instance
 me = singleton.SingleInstance()
-
+# default data and creating appdata file
 defaultSettings = {'lat': '0', 'long': '0', 'timeZone': 0, 'method': 'MWL', 'fajr': '19.5', 'dhuhr': '0',
-                   'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'showWindow': 0, 'windowLocationX': 82, 'windowLocationY': 18}
+                   'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'showWindow': 0, 'windowLocationX': 81, 'windowLocationY': 18}
 appdataFolder = f"{os.getenv('APPDATA')}\prayerTimes"
 appdataFile = f"{appdataFolder}\config.json"
 try:
     if not os.path.exists(appdataFolder):
-        os.mkdir(appdataFolder) 
+        os.mkdir(appdataFolder)
     if not os.path.exists(appdataFile):
         open(appdataFile, "x")
 except:
     file = open(appdataFile, "r")
-    
-
+# get screen dimentions
 screenWidth, screenHeight = pyautogui.size()
-
 #  constants
 prayersList = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 methods = ["MWL", "ISNA", "Egypt", "Makkah", "Karachi", "Tehran", "Jafari"]
@@ -34,19 +33,18 @@ timezones = list(range(-12, 12))
 menu = ['', ["settings", 'Exit']]
 menuMain = ['', ["hide", "settings", 'Exit']]
 tooltip = 'prayer times'
-
 # settings
-
 try:
     settings = json.load(file)
 except:
     settings = defaultSettings
     with open(appdataFile, 'w') as file:
         json.dump(defaultSettings, file)
-    
+
 fontsize = 15
 font = ("Arial", fontsize)
-appSize = (22*fontsize, 20*fontsize)
+appSize = (340, 300)
+
 
 def main():
     now = datetime.now()
@@ -224,15 +222,15 @@ def open_settings():
         [psg.Text("isha:", s=(10, 1)),
          psg.Input(str(settings["isha"]), justification="r", expand_x=True, s=(10, 1), k="s_isha"), psg.Text("degrees", s=(6, 1))],
         [psg.Checkbox("show main window:", default=settings["showWindow"],
-                      k="s_showWindow", enable_events=True),psg.Text("window location X"), psg.Input(
-            settings["windowLocationX"], k="s_windowLocationX",s=(5,0)), psg.Text("%"),psg.Text("window location Y"), psg.Input(
-            settings["windowLocationY"], k="s_windowLocationY",s=(5,0)), psg.Text("%")],
+                      k="s_showWindow", enable_events=True), psg.Text("window location X"), psg.Input(
+            settings["windowLocationX"], k="s_windowLocationX", s=(5, 0)), psg.Text("%"), psg.Text("window location Y"), psg.Input(
+            settings["windowLocationY"], k="s_windowLocationY", s=(5, 0)), psg.Text("%")],
         [psg.Button("Default", enable_events=True, key="default", expand_x=True),
          psg.Button("Save", enable_events=True, expand_x=True),
          psg.Button("Exit", enable_events=True, expand_x=True)]
     ]
     settingsWindow = psg.Window(
-        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico",grab_anywhere=True,element_justification="c")
+        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico", grab_anywhere=True, element_justification="c")
     while True:
         event, values = settingsWindow.read()
         # print(event)
