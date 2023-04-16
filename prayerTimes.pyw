@@ -7,8 +7,22 @@ from playsound import playsound
 import json
 import pyautogui
 from tendo import singleton
+import os
 
 me = singleton.SingleInstance()
+
+defaultSettings = {'lat': '0', 'long': '0', 'timeZone': 0, 'method': 'MWL', 'fajr': '19.0', 'dhuhr': '1',
+                   'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'showWindow': 0, 'windowLocationX': 82, 'windowLocationY': 18}
+appdataFolder = f"{os.getenv('APPDATA')}\prayerTimes"
+appdataFile = f"{appdataFolder}\config.json"
+try:
+    if not os.path.exists(appdataFolder):
+        os.mkdir(appdataFolder) 
+    if not os.path.exists(appdataFile):
+        open(appdataFile, "x")
+except:
+    file = open(appdataFile, "r")
+    
 
 screenWidth, screenHeight = pyautogui.size()
 
@@ -22,13 +36,14 @@ menuMain = ['', ["hide", "settings", 'Exit']]
 tooltip = 'prayer times'
 
 # settings
-file = open("resources/config.json", "r")
-defaultSettings = {'lat': '0', 'long': '0', 'timeZone': 0, 'method': 'MWL', 'fajr': '19.0', 'dhuhr': '1',
-                   'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'showWindow': 0, 'windowLocationX': 82, 'windowLocationY': 18}
+
 try:
     settings = json.load(file)
 except:
     settings = defaultSettings
+    with open(appdataFile, 'w') as file:
+        json.dump(defaultSettings, file)
+    
 fontsize = 15
 font = ("Arial", fontsize)
 appSize = (22*fontsize, 20*fontsize)
@@ -242,7 +257,7 @@ def open_settings():
             else:
                 settings["showWindow"] = 0
             del settings["thread"]
-            with open('resources/config.json', 'w') as file:
+            with open(appdataFile, 'w') as file:
                 json.dump(settings, file)
         if event == "default":
             settings["lat"] = 0
