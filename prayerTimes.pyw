@@ -12,7 +12,7 @@ import os
 # allow only one instance
 me = singleton.SingleInstance()
 # default data and creating appdata file
-defaultSettings = {'lat': '0', 'long': '0', 'timeZone': 0, 'method': 'MWL', 'fajr': '19.5', 'dhuhr': '0',
+defaultSettings = {'lat': '29.9', 'long': '31.2', 'timeZone': 2, 'method': 'EGYPT', 'fajr': '19.5', 'dhuhr': '0',
                    'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'showWindow': 0, 'windowLocationX': 81, 'windowLocationY': 18}
 appdataFolder = f"{os.getenv('APPDATA')}\prayerTimes"
 appdataFile = f"{appdataFolder}\config.json"
@@ -21,6 +21,7 @@ try:
         os.mkdir(appdataFolder)
     if not os.path.exists(appdataFile):
         open(appdataFile, "x")
+    file = open(appdataFile, "r")   
 except:
     file = open(appdataFile, "r")
 # get screen dimentions
@@ -36,10 +37,12 @@ tooltip = 'prayer times'
 # settings
 try:
     settings = json.load(file)
+    print('no error')
 except:
     settings = defaultSettings
     with open(appdataFile, 'w') as file:
         json.dump(defaultSettings, file)
+    print("error found")
 
 fontsize = 15
 font = ("Arial", fontsize)
