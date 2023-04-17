@@ -80,7 +80,7 @@ def main():
 
     window = psg.Window("Prayer Times", layout, size=isShown(), keep_on_top=True, grab_anywhere=True, font=font,
                         icon='resources/img/prayertimes.ico', alpha_channel=.7, element_justification="c" ,no_titlebar=True, element_padding=4, right_click_menu=menuMain,
-                        location=((settings["windowLocationX"]*screenWidth/100), (settings["windowLocationY"]*screenHeight/100)))
+                        location=((settings["windowLocationX"]*screenWidth/100), (settings["windowLocationY"]*screenHeight/100)),finalize=True)
     tray = SystemTray(menu, window=window,tooltip=tooltip, icon='resources/img/prayertimes.ico')
 
     playsound('resources/audio/Bismillah.wav')
@@ -231,7 +231,7 @@ def open_settings():
          psg.Button("Exit", enable_events=True, expand_x=True)]
     ]
     settingsWindow = psg.Window(
-        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico", grab_anywhere=True, element_justification="c")
+        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico", grab_anywhere=True, element_justification="c",finalize=True)
     while True:
         event, values = settingsWindow.read()
         # print(event)
