@@ -25,7 +25,7 @@ tooltip = 'prayer times'
 secondsInDay = 86400
 fontsize = 15
 font = ("Arial", fontsize)
-appSize = (340, 300)
+appSize = (340, 320)
 defaultSettings = {'lat': '29.9', 'long': '31.2', 'timeZone': 2, 'method': 'EGYPT', 'fajr': '19.5', 'dhuhr': '0',
                    'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'showWindow': 0, 'windowLocationX': 81, 'windowLocationY': 18}
 appdataFolder = f"{os.getenv('APPDATA')}\prayerTimes"
@@ -43,12 +43,12 @@ except:
 
 try:
     settings = json.load(file)
-    print('load settings from config')
+    # print('load settings from config')
 except:
     settings = defaultSettings
     with open(appdataFile, 'w') as file:
         json.dump(defaultSettings, file)
-    print("Load default settings")    
+    # print("Load default settings")    
 
 def main():
     now = datetime.now()
@@ -74,11 +74,12 @@ def main():
          psg.Text(isha, key="isha",justification="r", expand_x=True)],
         [psg.Text(time, key="Time", justification="c",enable_events=True, expand_x=True)],
         [psg.Text("next prayer is"),
-         psg.Text("", key="nextPrayer",text_color="red", font=font), psg.Text("", key="timeLeft")]
+         psg.Text("", key="nextPrayer",text_color="red", font=font)],
+        [psg.Text("", key="timeLeft",justification="c",expand_x=True)]
     ]
 
     window = psg.Window("Prayer Times", layout, size=isShown(), keep_on_top=True, grab_anywhere=True, font=font,
-                        icon='resources/img/prayertimes.ico', alpha_channel=.7, no_titlebar=True, element_padding=4, right_click_menu=menuMain,
+                        icon='resources/img/prayertimes.ico', alpha_channel=.7, element_justification="c" ,no_titlebar=True, element_padding=4, right_click_menu=menuMain,
                         location=((settings["windowLocationX"]*screenWidth/100), (settings["windowLocationY"]*screenHeight/100)))
     tray = SystemTray(menu, window=window,tooltip=tooltip, icon='resources/img/prayertimes.ico')
 
@@ -199,7 +200,6 @@ def calcNextPrayer(prayer,index):
     else:
         difSec = secondsInDay-abs(totalSec1-totalSec2)
     timeLeft = str(timedelta(seconds=(difSec)))
-    print(timeLeft)
     return timeLeft
 
 
