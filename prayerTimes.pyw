@@ -4,7 +4,6 @@ from praytimes import PrayTimes
 from datetime import datetime, timedelta
 from psgtray import SystemTray
 from playsound import playsound
-import pyautogui
 import os
 import json
 from tendo import singleton
@@ -13,10 +12,8 @@ from tendo import singleton
 me = singleton.SingleInstance()
 
 # constants
-screenWidth, screenHeight = pyautogui.size()
 prayersList = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 methods = ["MWL", "ISNA", "Egypt", "Makkah", "Karachi", "Tehran", "Jafari"]
-methodsText = ["MWL", "ISNA", "Egypt", "Makkah", "Karachi", "Tehran", "Jafari"]
 asrMethods = ["Standard", "Hanafi"]
 timezones = list(range(-12, 12))
 menu = ['', ["settings", 'Exit']]
@@ -27,7 +24,7 @@ fontsize = 15
 font = ("Arial", fontsize)
 appSize = (340, 320)
 defaultSettings = {'lat': '29.9', 'long': '31.2', 'timeZone': 2, 'method': 'EGYPT', 'fajr': '19.5', 'dhuhr': '0',
-                   'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'showWindow': 0, 'windowLocationX': 81, 'windowLocationY': 18}
+                   'asr': 'Standard', 'maghrib': '1', 'isha': '17.5', 'minimized': 1}
 appdataFolder = f"{os.getenv('APPDATA')}\prayerTimes"
 appdataFile = f"{appdataFolder}\config.json"
 
@@ -60,40 +57,36 @@ def main():
     isha = formatPrayerDate(pTimes["isha"])
     time = str((now.strftime("%d-%m-%Y, %I:%M:%S %p")))
     settings["thread"] = 0
-    layout = [
-        [psg.Text("Prayer Times", justification="c", expand_x=True)],
-        [psg.Text("fajr: "),
-         psg.Text(fajr, key="fajr",justification="r", expand_x=True)],
-        [psg.Text("dhuhr: "),
-         psg.Text(dhuhr, key="dhuhr",justification="r", expand_x=True)],
-        [psg.Text("asr: "),
-         psg.Text(asr, key="asr",justification="r", expand_x=True)],
-        [psg.Text("maghrib: "),
-         psg.Text(maghrib, key="maghrib",justification="r", expand_x=True)],
-        [psg.Text("isha: "),
-         psg.Text(isha, key="isha",justification="r", expand_x=True)],
-        [psg.Text(time, key="Time", justification="c",enable_events=True, expand_x=True)],
-        [psg.Text("next prayer is"),
-         psg.Text("", key="nextPrayer",text_color="red", font=font)],
-        [psg.Text("", key="timeLeft",justification="c",expand_x=True)]
-    ]
+    
+    l_title = [psg.Text("Prayer Times", justification="c", expand_x=True)]
+    l_fajr = [psg.Text("fajr: "),psg.Text(fajr, key="fajr",justification="r", expand_x=True)]
+    l_dhuhr = [psg.Text("dhuhr: "),psg.Text(dhuhr, key="dhuhr",justification="r", expand_x=True)]
+    l_asr= [psg.Text("asr: "),psg.Text(asr, key="asr",justification="r", expand_x=True)]
+    l_maghrib = [psg.Text("maghrib: "),psg.Text(maghrib, key="maghrib",justification="r", expand_x=True)]
+    l_isha = [psg.Text("isha: "),psg.Text(isha, key="isha",justification="r", expand_x=True)]
+    l_date = [psg.Text(time, key="Time", justification="c",enable_events=True, expand_x=True)]
+    l_nextPrayer = [psg.Text("next prayer is"),psg.Text("", key="nextPrayer",text_color="red", font=font)]
+    l_timeLeft = [psg.Text("", key="timeLeft",justification="c",expand_x=True)]   
+    layout = [l_title,l_fajr,l_dhuhr,l_asr,l_maghrib,l_isha,l_date,l_nextPrayer,l_timeLeft]
+        
+    # print(layout)
 
     window = psg.Window("Prayer Times", layout, size=isShown(), keep_on_top=True, grab_anywhere=True, font=font,
-                        icon='resources/img/prayertimes.ico', alpha_channel=.7, element_justification="c" ,no_titlebar=True, element_padding=4, right_click_menu=menuMain,
-                        location=((settings["windowLocationX"]*screenWidth/100), (settings["windowLocationY"]*screenHeight/100)),finalize=True)
+                        icon='resources/img/prayertimes.ico', alpha_channel=.7, element_justification="c" ,no_titlebar=True, element_padding=4,
+                        right_click_menu=menuMain,finalize=True)
     tray = SystemTray(menu, window=window,tooltip=tooltip, icon='resources/img/prayertimes.ico')
 
     playsound('resources/audio/Bismillah.wav')
 
     def calcPrayerTimes():
         now = datetime.now()
-        pTimes = getPrayerTimes()
+        nexPrayerIndex = nextPrayer()
+        pTimes = getPrayerTimes(nexPrayerIndex)
         fajr = formatPrayerDate(pTimes["fajr"])
         dhuhr = formatPrayerDate(pTimes["dhuhr"])
         asr = formatPrayerDate(pTimes["asr"])
         maghrib = formatPrayerDate(pTimes["maghrib"])
         isha = formatPrayerDate(pTimes["isha"])
-        nexPrayerIndex = nextPrayer()
         nextprayer = prayersList[nexPrayerIndex]
         window["fajr"].Update(fajr, text_color=("red" if nextprayer == "fajr" else "white"))
         window["dhuhr"].Update(dhuhr, text_color=("red" if nextprayer == "dhuhr" else "white"))
@@ -126,15 +119,16 @@ def main():
             # use the System Tray's event as if was from the window
             event = values[event]
         if event == "__DOUBLE_CLICKED__":
-            if settings["showWindow"] == 1:
+            if settings["minimized"] == 0:
                 window.size = (0, 0)
-                settings["showWindow"] = 0
+                settings["minimized"] = 1
             else:
                 window.size = appSize
-                settings["showWindow"] = 1
+                settings["minimized"] = 0
+                move_center(window)
         if event == "hide":
             window.size = (0, 0)
-            settings["showWindow"] = 0
+            settings["minimized"] = 0
         if event == "settings":
             open_settings()
         if event == "Exit":
@@ -171,8 +165,9 @@ def nextPrayer():
     return prayerIndex
 
 
-def getPrayerTimes():
+def getPrayerTimes(index=1):
     now = datetime.now()
+    hour = now.strftime("%H")
     year = int(now.strftime("%Y"))
     month = int(now.strftime("%m"))
     day = int(now.strftime("%d"))
@@ -180,7 +175,19 @@ def getPrayerTimes():
     s_dhuhr = settings["dhuhr"]
     pT.adjust({"fajr": settings["fajr"], "dhuhr": f"{s_dhuhr} min",
               "asr": settings["asr"], "maghrib": settings["maghrib"], "isha": settings["isha"]})
-    return pT.getTimes([year, month, day], [float(settings["lat"]), float(settings["long"])], settings["timeZone"])
+    if not index and int(hour) > 12:
+        try:
+            datetime(year,month,day+1)
+            prayerTimesList = pT.getTimes([year, month, day+1], [float(settings["lat"]), float(settings["long"])], settings["timeZone"])
+        except:
+            try:
+                datetime(year,month+1,1)
+                prayerTimesList = pT.getTimes([year, month+1, 1], [float(settings["lat"]), float(settings["long"])], settings["timeZone"])
+            except:
+                prayerTimesList = pT.getTimes([year+1, 1, 1], [float(settings["lat"]), float(settings["long"])], settings["timeZone"])
+    else:
+        prayerTimesList = pT.getTimes([year, month, day], [float(settings["lat"]), float(settings["long"])], settings["timeZone"])
+    return prayerTimesList
 
 
 def calcNextPrayer(prayer,index):
@@ -195,43 +202,34 @@ def calcNextPrayer(prayer,index):
     d2m = int(prayerTxt[1])
     d2s = 0
     totalSec2 = int(d2h)*60*60+int(d2m)*60+int(d2s)
-    if index:
-        difSec = abs(totalSec1-totalSec2)
-    else:
+    if not index and int(d1h) > 12:
         difSec = secondsInDay-abs(totalSec1-totalSec2)
+    else:
+        difSec = abs(totalSec1-totalSec2)
     timeLeft = str(timedelta(seconds=(difSec)))
     return timeLeft
 
 
 def open_settings():
-    settingLayout = [
-        [psg.Text("Settings", justification="c", expand_x=True)],
-        [psg.Text("lat:", s=(10, 1)), psg.Input(str(settings["lat"]), k="s_lat", s=(20, 1)),
-         psg.Text("long:"), psg.Input(
-             str(settings["long"]), k="s_long", s=(20, 1)), psg.Text("timezone"),
-         psg.Combo(timezones, k="s_timeZone", s=(5, 1), expand_x=True, default_value=settings["timeZone"])],
-        [psg.Text("method:", s=(10, 1)),
-         psg.Combo(methods, s=(10, 1), expand_x=True, k="s_method", default_value=settings["method"])],
-        [psg.Text("fajr :", s=(10, 1)),
-         psg.Input(str(settings["fajr"]), justification="r", expand_x=True, s=(10, 1), k="s_fajr"), psg.Text("degrees", s=(6, 1))],
-        [psg.Text("dhuhr:", s=(10, 1)),
-         psg.Input(str(settings["dhuhr"]), justification="r", expand_x=True, s=(10, 1), k="s_dhuhr"), psg.Text("minutes", s=(6, 1))],
-        [psg.Text("asr:", s=(10, 1)),
-         psg.Combo(asrMethods, s=(10, 1), k="s_asr", expand_x=True, default_value=settings["asr"]), psg.Text(s=(6, 1))],
-        [psg.Text("maghrib:", s=(10, 1)),
-         psg.Input(str(settings["maghrib"]), justification="r", expand_x=True, s=(10, 1), k="s_maghrib"), psg.Text("degrees", s=(6, 1))],
-        [psg.Text("isha:", s=(10, 1)),
-         psg.Input(str(settings["isha"]), justification="r", expand_x=True, s=(10, 1), k="s_isha"), psg.Text("degrees", s=(6, 1))],
-        [psg.Checkbox("show main window", default=settings["showWindow"],
-                      k="s_showWindow", enable_events=True), psg.Text("window location X"), psg.Input(
-            settings["windowLocationX"], k="s_windowLocationX", s=(5, 0)), psg.Text("%"), psg.Text("window location Y"), psg.Input(
-            settings["windowLocationY"], k="s_windowLocationY", s=(5, 0)), psg.Text("%")],
-        [psg.Button("Default", enable_events=True, key="default", expand_x=True),
-         psg.Button("Save", enable_events=True, expand_x=True),
-         psg.Button("Exit", enable_events=True, expand_x=True)]
-    ]
-    settingsWindow = psg.Window(
-        "Settings", settingLayout, modal=True, icon="resources/img/prayertimesSettings.ico", grab_anywhere=True, element_justification="c",finalize=True)
+    l_title = [psg.Text("Settings", justification="c", expand_x=True)]
+    l_latLongTimeZone = [psg.Text("lat:", s=(10, 1)),
+                         psg.Input(str(settings["lat"]), k="s_lat", s=(20, 1)),
+                         psg.Text("long:"), psg.Input(str(settings["long"]), k="s_long", s=(20, 1)),
+                         psg.Text("timezone"),psg.Combo(timezones, k="s_timeZone", s=(5, 1), expand_x=True, default_value=settings["timeZone"])]
+    l_method = [psg.Text("method:", s=(10, 1)),psg.Combo(methods, s=(10, 1), expand_x=True, k="s_method", default_value=settings["method"])]
+    l_fajr_duhr_asr = [psg.Text("fajr :", s=(10, 1)),psg.Input(str(settings["fajr"]), expand_x=True, justification="r",  s=(5, 1), k="s_fajr"),
+                        psg.Text("deg", s=(5, 1)),psg.Text("dhuhr:"),
+                        psg.Input(str(settings["dhuhr"]), expand_x=True, justification="r", s=(5, 1), k="s_dhuhr"),psg.Text("min", s=(6, 1)),
+                        psg.Text("asr:"),psg.Combo(asrMethods, s=(6, 1), k="s_asr", expand_x=True, default_value=settings["asr"])]
+    l_maghrib_isha = [psg.Text("maghrib:", s=(10, 1)),psg.Input(str(settings["maghrib"]), justification="r", expand_x=True, k="s_maghrib"),
+                        psg.Text("degrees"),psg.Text("isha:"),psg.Input(str(settings["isha"]), justification="r", expand_x=True, k="s_isha"),
+                        psg.Text("degrees", s=(6, 1))]
+    l_minimized = [psg.Checkbox("start minimized", default=settings["minimized"],k="s_minimized", enable_events=True)]
+    l_buttons = [psg.Button("Default", enable_events=True, key="default", expand_x=True),psg.Button("Save", enable_events=True, expand_x=True),
+                        psg.Button("Exit", enable_events=True, expand_x=True)]
+    settingLayout = [l_title,l_latLongTimeZone,l_method,l_fajr_duhr_asr,l_maghrib_isha,l_minimized,l_buttons]
+    settingsWindow = psg.Window("Settings", settingLayout, modal=True,
+                                icon="resources/img/prayertimesSettings.ico", grab_anywhere=True, element_justification="c",finalize=True)
     while True:
         event, values = settingsWindow.read()
         # print(event)
@@ -247,48 +245,48 @@ def open_settings():
             settings["asr"] = values["s_asr"]
             settings["maghrib"] = values["s_maghrib"]
             settings["isha"] = values["s_isha"]
-            settings["windowLocationX"] = int(values["s_windowLocationX"])
-            settings["windowLocationY"] = int(values["s_windowLocationY"])
-            if values["s_showWindow"]:
-                settings["showWindow"] = 1
+            if values["s_minimized"]:
+                settings["minimized"] = 1
             else:
-                settings["showWindow"] = 0
+                settings["minimized"] = 0
             del settings["thread"]
             with open(appdataFile, 'w') as file:
                 json.dump(settings, file)
         if event == "default":
-            settings["lat"] = 0
-            settings["long"] = 0
-            settings["timeZone"] = 0
-            settings["method"] = "MWL"
-            settings["fajr"] = 19.
-            settings["dhuhr"] = 1
-            settings["asr"] = "Standard"
-            settings["maghrib"] = 1
-            settings["isha"] = 17.5
-            settings["showWindow"] = 0
-            settings["windowLocationX"] = 50
-            settings["windowLocationY"] = 50
-            settingsWindow["s_lat"].Update(0)
-            settingsWindow["s_long"].Update(0)
-            settingsWindow["s_timeZone"].Update(0)
-            settingsWindow["s_method"].Update("MWL")
-            settingsWindow["s_fajr"].Update(19.)
-            settingsWindow["s_dhuhr"].Update(1,)
-            settingsWindow["s_asr"].Update("Standard")
-            settingsWindow["s_maghrib"].Update(1)
-            settingsWindow["s_isha"].Update(17.5)
-            settingsWindow["s_showWindow"].Update(0)
-            settingsWindow["s_windowLocationX"].Update(82)
-            settingsWindow["s_windowLocationY"].Update(18)
+            settings["lat"] = defaultSettings["lat"]
+            settings["long"] = defaultSettings["long"]
+            settings["timeZone"] = defaultSettings["timeZone"]
+            settings["method"] = defaultSettings["method"]
+            settings["fajr"] = defaultSettings["fajr"]
+            settings["dhuhr"] = defaultSettings["dhuhr"]
+            settings["asr"] = defaultSettings["asr"]
+            settings["maghrib"] = defaultSettings["maghrib"]
+            settings["isha"] = defaultSettings["isha"]
+            settings["minimized"] = defaultSettings["minimized"]
+            settingsWindow["s_lat"].Update(defaultSettings["lat"])
+            settingsWindow["s_long"].Update(defaultSettings["long"])
+            settingsWindow["s_timeZone"].Update(defaultSettings["timeZone"])
+            settingsWindow["s_method"].Update(defaultSettings["method"])
+            settingsWindow["s_fajr"].Update(defaultSettings["fajr"])
+            settingsWindow["s_dhuhr"].Update(defaultSettings["dhuhr"])
+            settingsWindow["s_asr"].Update(defaultSettings["asr"])
+            settingsWindow["s_maghrib"].Update(defaultSettings["maghrib"])
+            settingsWindow["s_isha"].Update(defaultSettings["isha"])
+            settingsWindow["s_minimized"].Update(defaultSettings["minimized"])
     settingsWindow.close()
 
 
 def isShown():
-    if settings["showWindow"]:
-        return appSize
-    else:
+    if settings["minimized"]:
         return (0, 0)
+    else:
+        return appSize
+
+def move_center(window):
+    screen_width, screen_height = window.get_screen_dimensions()
+    win_width, win_height = window.size
+    x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
+    window.move(x, y)
 
 if __name__ == "__main__":
     main()
